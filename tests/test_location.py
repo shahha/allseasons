@@ -19,12 +19,14 @@ class TestLocation:
     to keep the structure parallel with the source class.
     """
 
+    @pytest.mark.europe
     @pytest.mark.external
     def test_country_uk(self):
         lat, lng = places['london']
         loc = location.Location(lat, lng)
         assert loc.country == 'UK'
 
+    @pytest.mark.europe
     @pytest.mark.external
     def test_country_russia(self):
         lat, lng = places['murmansk']
@@ -37,6 +39,7 @@ class TestLocation:
         loc = location.Location(lat, lng)
         assert loc.country == 'Argentina'
 
+    @pytest.mark.oceania
     @pytest.mark.external
     def test_country_australia(self):
         lat, lng = places['melbourne']
@@ -44,20 +47,43 @@ class TestLocation:
         assert loc.country == 'Australia'
 
     @pytest.mark.xfail(reason="Not sure why this fails, can you figure out why?")
+    @pytest.mark.oceania
     @pytest.mark.external
     def test_country_indonesia(self):
         lat, lng = 'pontianak'
         loc = location.Location(lat, lng)
         assert loc.country == 'Indonesia'
 
+
+
+    def test_hemisphere_melbourne(self):
+        lat, lng = places['melbourne']
+        loc = location.Location(lat, lng)
+        assert loc.hemisphere == 'northern'
+
+
+
     @pytest.mark.parametrize(('placename', 'expected'), [
         ('london', 'northern'),
         ('murmansk', 'northern'),
         ('buenos aires', 'southern'),
-        ('melbourne', 'southern'),
         ('pontianak', 'southern'),
     ])
-    def test_hemisphere(self, placename, expected):
+    def test_hemisphere_bulk(self, placename, expected):
         lat, lng = places[placename]
         loc = location.Location(lat, lng)
         assert loc.hemisphere == expected
+
+
+    def test_hemisphere_errors(self):
+        """We don't validate the input, but we expect
+        lat and lng to be floats rather than eg strings.
+        It's not exactly intentional, but this test is
+        documenting that behaviour.
+        """
+        lat = '37°S'
+        lng = '144°E'
+        loc = location.Location(lat, lng)
+        with pytest.raises(TypeError):
+            _hemisphere = loc.hemisphere
+        
